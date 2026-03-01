@@ -136,6 +136,8 @@ def set_seat_pricing(request: SeatPricingCreate):
                 INSERT INTO booking.show_seat_pricing
                 (show_id, seat_category_id, price)
                 VALUES (%s, %s, %s)
+                ON CONFLICT (show_id, seat_category_id)
+                DO UPDATE SET price = EXCLUDED.price
             """, (
                 request.show_id,
                 request.seat_category_id,
