@@ -80,7 +80,7 @@ def add_show(request: ShowCreate):
 
             # Insert show
             cur.execute("""
-                INSERT INTO booking.show
+                INSERT INTO booking.shows
                 (movie_id, screen_id, start_time, end_time, base_price, status, is_active)
                 VALUES (%s, %s, %s, %s, %s, 'Scheduled', TRUE)
                 RETURNING show_id
@@ -118,7 +118,7 @@ def set_seat_pricing(request: SeatPricingCreate):
         with conn.cursor() as cur:
 
             # Check show exists
-            cur.execute("SELECT 1 FROM booking.show WHERE show_id = %s",
+            cur.execute("SELECT 1 FROM booking.shows WHERE show_id = %s",
                         (request.show_id,))
             if not cur.fetchone():
                 raise HTTPException(status_code=404, detail="Show not found")
