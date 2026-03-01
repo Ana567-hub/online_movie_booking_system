@@ -27,6 +27,12 @@ app.include_router(history.router)
 from routers import review
 app.include_router(review.router)
 
+from routers import analytics
+app.include_router(analytics.router)
+
+from routers import admin
+app.include_router(admin.router)
+
 @app.get("/")
 def root():
     return {"message": "Movie Booking Backend Running 🚀"}
