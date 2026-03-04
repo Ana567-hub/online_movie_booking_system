@@ -617,7 +617,7 @@ CREATE TABLE booking.users (
     phone character varying(20),
     password_hash text NOT NULL,
     created_date timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    role character varying(20),
+    role character varying(20) DEFAULT 'Customer',
     CONSTRAINT users_role_check CHECK (((role)::text = ANY ((ARRAY['Customer'::character varying, 'Admin'::character varying])::text[])))
 );
 
@@ -1448,7 +1448,6 @@ ALTER TABLE ONLY booking.booking
     ADD CONSTRAINT booking_show_id_fkey FOREIGN KEY (show_id) REFERENCES booking.show(show_id);
 
 
---
 -- Name: booking booking_user_id_fkey; Type: FK CONSTRAINT; Schema: booking; Owner: postgres
 --
 

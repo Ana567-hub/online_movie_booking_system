@@ -1,11 +1,17 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from database import get_connection
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Annotated
+from routers import auth
+from .auth import get_current_admin
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
+@router.get("/dashboard")
+async def admin_dashboard(admin: Annotated[dict, Depends(get_current_admin)]):
+    #only runs if user.role == 'Admin'
+    return {"message": f"Welcome back, Admin {admin.get('sub')}"}
 
 # ---------------------------
 # 🎬 ADD MOVIE

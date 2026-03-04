@@ -1,8 +1,8 @@
 from fastapi import FastAPI
-from routers import cities, movies
+from routers import cities, movies,auth
 
 app = FastAPI()
-
+app.include_router(auth.router)
 # Include routers
 app.include_router(cities.router)
 app.include_router(movies.router)

@@ -1,24 +1,23 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from database import get_connection
 from pydantic import BaseModel
-from typing import List
+from typing import List, Annotated
 from datetime import datetime, timedelta
+from .auth import get_current_user
 
 router = APIRouter()
 
-
 # -------- Request Model --------
 class BookingRequest(BaseModel):
-    user_id: int
+    # user_id: int
     show_id: int
     seat_ids: List[int]
 
-
-# -------- Booking Endpoint --------
+# -------- Booking Endpoint -------
 @router.post("/booking")
-def create_booking(request: BookingRequest):
-
-    user_id = request.user_id
+def create_booking(request: BookingRequest, user: Annotated[dict, Depends(get_current_user)]):
+    
+    user_id = user.get('id')
     show_id = request.show_id
     seat_ids = request.seat_ids
 
@@ -128,15 +127,15 @@ def create_booking(request: BookingRequest):
 
 
 @router.post("/cancel/{booking_id}")
-def cancel_booking(booking_id: int):
-
+def cancel_booking(booking_id: int, user: Annotated[dict, Depends(get_current_user)]):
+    user_id = user.get('id')
     with get_connection() as conn:
         try:
             with conn.cursor() as cur:
 
                 # 1️⃣ Get booking info
                 cur.execute("""
-                    SELECT status, show_id
+                    SELECT status, show_id,user_id
                     FROM booking.booking
                     WHERE booking_id = %s
                 """, (booking_id,))
@@ -146,8 +145,11 @@ def cancel_booking(booking_id: int):
                 if not booking:
                     raise HTTPException(status_code=404, detail="Booking not found")
 
-                status, show_id = booking
+                status, show_id, owner_id = booking
 
+                #person who books can only cancel no one else
+                if owner_id != user_id:
+                    raise HTTPException(status_code=403, detail="You don't have permission to cancel this booking")
                 if status == "CANCELLED":
                     raise HTTPException(status_code=400, detail="Already cancelled")
 
