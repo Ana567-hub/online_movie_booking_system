@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import uvicorn
 from routers import cities, movies,auth
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,7 +7,6 @@ app = FastAPI()
 
 origins = [
     "http://localhost:5173",
-    "localhost:5173"
 ]
 
 
@@ -54,3 +54,5 @@ app.include_router(admin.router)
 def root():
     return {"message": "Movie Booking Backend Running 🚀"}
 
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port = 8000)
