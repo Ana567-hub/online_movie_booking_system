@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Velora Cinemas — Minimal Frontend</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #0b0f19; color: #e9eefc; }
+    header { padding: 18px 22px; border-bottom: 1px solid #1c2440; background: #0b0f19; position: sticky; top: 0; }
+    header h1 { margin: 0; font-size: 18px; letter-spacing: .2px; }
+    header small { color: #a9b6e6; }
+    main { padding: 18px 22px; display: grid; grid-template-columns: 1fr; gap: 14px; max-width: 1050px; margin: 0 auto; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
+    .card { background: #111831; border: 1px solid #1c2440; border-radius: 14px; padding: 14px; }
+    .card h2 { margin: 0 0 10px; font-size: 15px; }
+    label { display: block; font-size: 12px; color: #a9b6e6; margin: 10px 0 6px; }
+    input, select, textarea {
+      width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #26315a;
+      background: #0b1024; color: #e9eefc; outline: none;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    button {
+      margin-top: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid #2b3a74;
+      background: #1b2b63; color: #e9eefc; cursor: pointer;
+    }
+    button.secondary { background: #0b1024; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .pill { display:inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; border: 1px solid #26315a; color:#a9b6e6; }
+    .ok { color: #7dffa6; }
+    .bad { color: #ff7d7d; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .list { display: grid; gap: 8px; margin-top: 10px; }
+    .item { background:#0b1024; border:1px solid #26315a; padding:10px; border-radius: 12px; }
+    code { background: #0b1024; padding: 2px 6px; border-radius: 8px; border: 1px solid #26315a; }
+    .muted { color:#a9b6e6; font-size: 12px; }
+    .two { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 700px) { .two { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Velora Cinemas — Minimal Frontend</h1>
+  <small>FastAPI: <code id="apiBaseLabel"></code> • Frontend served on <code>http://localhost:5173</code></small>
+</header>
+
+<main>
+  <div class="card">
+    <h2>0) Backend Status</h2>
+    <div class="two">
+      <div>
+        <div class="muted">Click to test <code>GET /</code></div>
+        <button id="btnHealth">Check Backend</button>
+        <div id="healthOut" class="muted" style="margin-top:8px;"></div>
+      </div>
+      <div>
+        <div class="muted">Auth token (stored in browser memory for this page):</div>
+        <div id="tokenOut" class="pill">No token</div>
+        <button class="secondary" id="btnLogout">Clear Token</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>1) Register (INSERT)</h2>
+      <div class="muted">Calls <code>POST /auth/</code></div>
+      <label>Full name</label>
+      <input id="regName" placeholder="Nivedita Mahesh" />
+      <label>Email (used as username)</label>
+      <input id="regEmail" placeholder="nivy@example.com" />
+      <label>Phone</label>
+      <input id="regPhone" placeholder="9999999999" />
+      <label>Password</label>
+      <input id="regPass" type="password" placeholder="••••••••" />
+      <button id="btnRegister">Create Account</button>
+      <div id="regOut" class="muted"></div>
+    </div>
+
+    <div class="card">
+      <h2>2) Login (Get Token)</h2>
+      <div class="muted">Calls <code>POST /auth/token</code> (form data)</div>
+      <label>Email</label>
+      <input id="loginEmail" placeholder="nivy@example.com" />
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="••••••••" />
+      <button id="btnLogin">Login</button>
+      <div id="loginOut" class="muted"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3) Movies (RETRIEVE)</h2>
+    <div class="muted">Calls <code>GET /movies</code></div>
+    <button id="btnMovies">Load Movies</button>
+    <div id="moviesOut" class="list"></div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>4) Create Booking (INSERT)</h2>
+      <div class="muted">Calls <code>POST /booking</code> with Bearer token</div>
+
+      <label>Show ID</label>
+      <input id="bookShowId" type="number" placeholder="e.g., 1" />
+
+      <label>Seat IDs (comma-separated)</label>
+      <input id="bookSeatIds" placeholder="e.g., 10,11,12" />
+
+      <button id="btnBook">Create Booking</button>
+      <div id="bookOut" class="muted"></div>
+
+      <div style="margin-top:10px" class="muted">
+        Tip: If you don’t know show_id / seat_ids, open Swagger and pick valid IDs from your seeded data.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>5) Cancel Booking (UPDATE)</h2>
+      <div class="muted">Calls <code>POST /cancel/{booking_id}</code> with Bearer token</div>
+
+      <label>Booking ID</label>
+      <input id="cancelBookingId" type="number" placeholder="e.g., 7" />
+
+      <button id="btnCancel">Cancel Booking</button>
+      <div id="cancelOut" class="muted"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>6) Admin (Optional) — Add Movie / Add Show (INSERT)</h2>
+    <div class="muted">
+      Only works if you login as an Admin user (role=Admin in DB). Calls <code>POST /admin/movie</code> and <code>POST /admin/show</code>.
+    </div>
+
+    <div class="grid">
+      <div class="item">
+        <div class="pill">Add Movie</div>
+        <label>Title</label>
+        <input id="amTitle" placeholder="Interstellar" />
+        <label>Language</label>
+        <input id="amLang" placeholder="English" />
+        <label>Duration (minutes)</label>
+        <input id="amDur" type="number" placeholder="169" />
+        <label>Certification</label>
+        <input id="amCert" placeholder="UA" />
+        <label>Release Date (ISO)</label>
+        <input id="amRel" placeholder="2014-11-07T00:00:00" />
+        <label>IMDB rating</label>
+        <input id="amRate" placeholder="8.6" />
+        <button id="btnAddMovie">Add Movie</button>
+        <div id="amOut" class="muted"></div>
+      </div>
+
+      <div class="item">
+        <div class="pill">Add Show</div>
+        <label>Movie ID</label>
+        <input id="asMovieId" type="number" placeholder="1" />
+        <label>Screen ID</label>
+        <input id="asScreenId" type="number" placeholder="1" />
+        <label>Start time (ISO)</label>
+        <input id="asStart" placeholder="2026-03-06T18:00:00" />
+        <label>End time (ISO)</label>
+        <input id="asEnd" placeholder="2026-03-06T21:00:00" />
+        <button id="btnAddShow">Add Show</button>
+        <div id="asOut" class="muted"></div>
+      </div>
+
+      <div class="item">
+        <div class="pill">Debug Console</div>
+        <div class="muted">If something fails, copy this output in your demo as proof of API calls.</div>
+        <textarea id="debugLog" readonly></textarea>
+        <button class="secondary" id="btnClearLog">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Demo Script (What you do in front of prof)</h2>
+    <ol>
+      <li><b>Backend Status</b> → click “Check Backend” (shows API running).</li>
+      <li><b>Register</b> a user (INSERT).</li>
+      <li><b>Login</b> to get token.</li>
+      <li><b>Load Movies</b> (RETRIEVE).</li>
+      <li><b>Create Booking</b> (INSERT) with show_id + seat_ids.</li>
+      <li><b>Cancel Booking</b> (UPDATE).</li>
+      <li><b>Direct SQL</b> in pgAdmin/psql: show the booking row updated/cancelled (this covers the “direct DB operations” part).</li>
+    </ol>
+  </div>
+
+</main>
+
+<script>
+  const API_BASE = "http://localhost:8000";
+  document.getElementById("apiBaseLabel").textContent = API_BASE;
+
+  let ACCESS_TOKEN = null;
+
+  const $ = (id) => document.getElementById(id);
+  const log = (msg) => {
+    const box = $("debugLog");
+    box.value = (box.value ? box.value + "\\n" : "") + msg;
+    box.scrollTop = box.scrollHeight;
+  };
+
+  function setToken(token) {
+    ACCESS_TOKEN = token;
+    if (token) {
+      $("tokenOut").textContent = "Token set ✅";
+      $("tokenOut").classList.add("ok");
+      $("tokenOut").classList.remove("bad");
+    } else {
+      $("tokenOut").textContent = "No token";
+      $("tokenOut").classList.add("bad");
+      $("tokenOut").classList.remove("ok");
+    }
+  }
+
+  async function apiFetch(path, opts = {}) {
+    const url = API_BASE + path;
+    const headers = opts.headers || {};
+
+    if (ACCESS_TOKEN) headers["Authorization"] = "Bearer " + ACCESS_TOKEN;
+    if (!headers["Content-Type"] && opts.body && !(opts.body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    const res = await fetch(url, { ...opts, headers });
+    const text = await res.text();
+
+    let json = null;
+    try { json = JSON.parse(text); } catch (e) {}
+
+    if (!res.ok) {
+      const detail = (json && (json.detail || json.message)) ? (json.detail || json.message) : text;
+      throw new Error(`${res.status} ${res.statusText}: ${detail}`);
+    }
+    return json ?? text;
+  }
+
+  // 0) Health
+  $("btnHealth").onclick = async () => {
+    $("healthOut").textContent = "Checking...";
+    try {
+      const out = await apiFetch("/", { method: "GET" });
+      $("healthOut").innerHTML = `<span class="ok">OK</span> ` + JSON.stringify(out);
+      log("GET / OK: " + JSON.stringify(out));
+    } catch (e) {
+      $("healthOut").innerHTML = `<span class="bad">FAIL</span> ` + e.message;
+      log("GET / FAIL: " + e.message);
+    }
+  };
+
+  $("btnLogout").onclick = () => {
+    setToken(null);
+    $("loginOut").textContent = "Token cleared.";
+    log("Token cleared.");
+  };
+
+  // 1) Register
+  $("btnRegister").onclick = async () => {
+    $("regOut").textContent = "Creating user...";
+    const payload = {
+      full_name: $("regName").value.trim(),
+      email: $("regEmail").value.trim(),
+      phone: $("regPhone").value.trim(),
+      password: $("regPass").value
+    };
+    try {
+      const out = await apiFetch("/auth/", { method: "POST", body: JSON.stringify(payload) });
+      $("regOut").innerHTML = `<span class="ok">Created</span> ` + JSON.stringify(out);
+      log("POST /auth/ OK: " + JSON.stringify(out));
+    } catch (e) {
+      $("regOut").innerHTML = `<span class="bad">FAIL</span> ` + e.message;
+      log("POST /auth/ FAIL: " + e.message);
+    }
+  };
+
+  // 2) Login
+  $("btnLogin").onclick = async () => {
+    $("loginOut").textContent = "Logging in...";
+    const fd = new FormData();
+    fd.append("username", $("loginEmail").value.trim());
+    fd.append("password", $("loginPass").value);
+
+    try {
+      const out = await apiFetch("/auth/token", { method: "POST", body: fd });
+      setToken(out.access_token);
+      $("loginOut").innerHTML = `<span class="ok">Logged in</span>`;
+      log("POST /auth/token OK");
+    } catch (e) {
+      setToken(null);
+      $("loginOut").innerHTML = `<span class="bad">FAIL</span> ` + e.message;
+      log("POST /auth/token FAIL: " + e.message);
+    }
+  };
+
+  // 3) Movies
+  $("btnMovies").onclick = async () => {
+    $("moviesOut").innerHTML = "";
+    try {
+      const out = await apiFetch("/movies", { method: "GET" });
+      log("GET /movies OK");
+
+      // backend may return array directly OR {movies:[...]} — support both
+      const movies = Array.isArray(out) ? out : (out.movies || []);
+      if (!movies.length) {
+        $("moviesOut").innerHTML = `<div class="muted">No movies returned. (If your backend returns a different shape, tell me the response JSON.)</div>`;
+        return;
+      }
+
+      $("moviesOut").innerHTML = movies.map(m => {
+        const id = m.movie_id ?? m.id ?? "?";
+        const title = m.title ?? "(no title)";
+        return `<div class="item"><b>${title}</b><div class="muted">movie_id: ${id}</div></div>`;
+      }).join("");
+    } catch (e) {
+      $("moviesOut").innerHTML = `<div class="item"><span class="bad">FAIL</span> ${e.message}</div>`;
+      log("GET /movies FAIL: " + e.message);
+    }
+  };
+
+  // 4) Booking
+  $("btnBook").onclick = async () => {
+    $("bookOut").textContent = "Creating booking...";
+    const showId = Number($("bookShowId").value);
+    const seatIds = $("bookSeatIds").value
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean)
+      .map(Number);
+
+    const payload = { show_id: showId, seat_ids: seatIds };
+
+    try {
+      const out = await apiFetch("/booking", { method: "POST", body: JSON.stringify(payload) });
+      $("bookOut").innerHTML = `<span class="ok">Booked</span> ` + JSON.stringify(out);
+      log("POST /booking OK: " + JSON.stringify(out));
+    } catch (e) {
+      $("bookOut").innerHTML = `<span class="bad">FAIL</span> ` + e.message;
+      log("POST /booking FAIL: " + e.message);
+    }
+  };
+
+  // 5) Cancel
+  $("btnCancel").onclick = async () => {
+    $("cancelOut").textContent = "Cancelling...";
+    const bookingId = Number($("cancelBookingId").value);
+
+    try {
+      const out = await apiFetch(`/cancel/${bookingId}`, { method: "POST" });
+      $("cancelOut").innerHTML = `<span class="ok">Cancelled</span> ` + JSON.stringify(out);
+      log("POST /cancel/{id} OK: " + JSON.stringify(out));
+    } catch (e) {
+      $("cancelOut").innerHTML = `<span class="bad">FAIL</span> ` + e.message;
+      log("POST /cancel/{id} FAIL: " + e.message);
+    }
+  };
+
+  // 6) Admin Add Movie
+  $("btnAddMovie").onclick = async () => {
+    $("amOut").textContent = "Adding...";
+    const payload = {
+      title: $("amTitle").value.trim(),
+      language: $("amLang").value.trim(),
+      duration_minutes: Number($("amDur").value),
+      certification: $("amCert").value.trim(),
+      release_date: $("amRel").value.trim(),
+      imdb_rating: $("amRate").value ? Number($("amRate").value) : null
+    };
+    try {
+      const out = await apiFetch("/admin/movie", { method: "POST", body: JSON.stringify(payload) });
+      $("amOut").innerHTML = `<span class="ok">Added</span> ` + JSON.stringify(out);
+      log("POST /admin/movie OK: " + JSON.stringify(out));
+    } catch (e) {
+      $("amOut").innerHTML = `<span class="bad">FAIL</span> ` + e.message;
+      log("POST /admin/movie FAIL: " + e.message);
+    }
+  };
+
+  // 6) Admin Add Show
+  $("btnAddShow").onclick = async () => {
+    $("asOut").textContent = "Adding...";
+    const payload = {
+      movie_id: Number($("asMovieId").value),
+      screen_id: Number($("asScreenId").value),
+      start_time: $("asStart").value.trim(),
+      end_time: $("asEnd").value.trim()
+    };
+    try {
+      const out = await apiFetch("/admin/show", { method: "POST", body: JSON.stringify(payload) });
+      $("asOut").innerHTML = `<span class="ok">Added</span> ` + JSON.stringify(out);
+      log("POST /admin/show OK: " + JSON.stringify(out));
+    } catch (e) {
+      $("asOut").innerHTML = `<span class="bad">FAIL</span> ` + e.message;
+      log("POST /admin/show FAIL: " + e.message);
+    }
+  };
+
+  $("btnClearLog").onclick = () => $("debugLog").value = "";
+</script>
+</body>
+</html>

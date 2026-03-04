@@ -189,7 +189,7 @@ CREATE TABLE booking.movie (
     language character varying(50),
     duration_minutes integer,
     certification character varying(10),
-    release_date date,
+    release_date varchar,
     imdb_rating numeric(3,1),
     is_active boolean DEFAULT true,
     CONSTRAINT movie_duration_minutes_check CHECK ((duration_minutes > 0))
@@ -1056,7 +1056,9 @@ COPY booking.theatre (theatre_id, city_id, name, address, latitude, longitude, c
 COPY booking.users (user_id, full_name, email, phone, password_hash, created_date, role) FROM stdin;
 1	Ananya Joshi	ananya@email.com	9876543210	hashed1	2026-02-22 17:37:06.813166	Customer
 2	Rahul Sharma	rahul@email.com	9123456780	hashed2	2026-02-22 17:37:06.813166	Customer
-3	Admin User	admin@email.com	9999999999	hashed3	2026-02-22 17:37:06.813166	Admin
+3	Admin User	admin2@gmail.com	9999999999	hashed3	2026-02-22 17:37:06.813166	Admin
+4   AdminFinal  admin@gmail.com 1234567890  $2b$12$Yqw4BmE4re2k6d08bJu2hOOys5C.uRJDbYafB1SX5HTcVbzDlXbGe 2026-03-04 13:01:53.
+809937 Admin
 \.
 
 

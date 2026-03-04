@@ -12,33 +12,30 @@ def get_movies(
 ):
     with get_connection() as conn:
         with conn.cursor() as cur:
-
+            # Base SELECT and JOINs
+            # Note: We group by all non-aggregate columns to satisfy SQL standards
             base_query = """
-                        SELECT 
-                        m.movie_id, 
-                        m.title, 
-                        m.language, 
-                        m.imdb_rating,
-                        AVG(r.rating) AS avg_rating,
-                        COUNT(r.review_id) AS total_reviews
-                        FROM booking.movie m
-                        JOIN booking.show s ON s.movie_id = m.movie_id
-                        JOIN booking.screen sc ON sc.screen_id = s.screen_id
-                        JOIN booking.theatre t ON t.theatre_id = sc.theatre_id
-                        LEFT JOIN booking.review r ON r.movie_id = m.movie_id
-                        WHERE m.is_active = TRUE
-                        AND s.is_active = TRUE
-                        AND sc.is_active = TRUE
-                        AND t.is_active = TRUE
-                        """
+                SELECT 
+                    m.movie_id, 
+                    m.title, 
+                    m.language, 
+                    m.imdb_rating,
+                    AVG(r.rating) AS avg_rating,
+                    COUNT(r.review_id) AS total_reviews
+                FROM booking.movie m
+                JOIN booking.show s ON s.movie_id = m.movie_id
+                JOIN booking.screen sc ON sc.screen_id = s.screen_id
+                JOIN booking.theatre t ON t.theatre_id = sc.theatre_id
+                LEFT JOIN booking.review r ON r.movie_id = m.movie_id
+                WHERE m.is_active = TRUE
+                AND s.is_active = TRUE
+                AND sc.is_active = TRUE
+                AND t.is_active = TRUE
+            """
             
-            base_query += """
-                     GROUP BY m.movie_id
-                     ORDER BY m.movie_id
-                        """
-
             params = []
 
+            # Dynamic Filters (must stay in the WHERE section)
             if city_id is not None:
                 base_query += " AND t.city_id = %s"
                 params.append(city_id)
@@ -46,31 +43,33 @@ def get_movies(
             if genre_id is not None:
                 base_query += """
                     AND m.movie_id IN (
-                        SELECT movie_id
-                        FROM booking.movie_genre
-                        WHERE genre_id = %s
+                        SELECT movie_id FROM booking.movie_genre WHERE genre_id = %s
                     )
                 """
                 params.append(genre_id)
 
-            base_query += " ORDER BY m.movie_id"
+            # Final Clauses (Must be at the very end)
+            base_query += """
+                GROUP BY m.movie_id, m.title, m.language, m.imdb_rating
+                ORDER BY m.movie_id
+            """
 
             cur.execute(base_query, tuple(params))
             rows = cur.fetchall()
 
     movies = []
     for row in rows:
-        
-           movies.append({
-                    "movie_id": row[0],
-                    "title": row[1],
-                    "language": row[2],
-                    "imdb_rating": float(row[3]) if row[3] else None,
-                    "average_rating": float(row[4]) if row[4] else None,
-                    "total_reviews": row[5]
-})
+        movies.append({
+            "movie_id": row[0],
+            "title": row[1],
+            "language": row[2],
+            "imdb_rating": float(row[3]) if row[3] else None,
+            "average_rating": float(row[4]) if row[4] else None,
+            "total_reviews": row[5]
+        })
 
     return {"movies": movies}
+
 @router.get("/{movie_id}")
 def get_movie_details(movie_id: int):
     with get_connection() as conn:
@@ -133,3 +132,30 @@ def get_movie_details(movie_id: int):
         "average_rating": float(rating_data[0]) if rating_data[0] else None,
         "total_reviews": rating_data[1]
     }
+
+@router.post("/shows")
+def add_show(show_data: dict): # Replace 'dict' with your Pydantic model if you have one
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                # Always use 'booking.' prefix for tables in the booking schema
+                insert_query = """
+                    INSERT INTO booking.show (movie_id, screen_id, start_time, end_time, is_active)
+                    VALUES (%s, %s, %s, %s, TRUE)
+                    RETURNING show_id;
+                """
+                cur.execute(insert_query, (
+                    show_data.get('movie_id'),
+                    show_data.get('screen_id'),
+                    show_data.get('start_time'),
+                    show_data.get('end_time')
+                ))
+                
+                new_id = cur.fetchone()[0]
+                conn.commit()
+                return {"message": "Show created successfully", "show_id": new_id}
+                
+            except Exception as e:
+                conn.rollback()
+                # This will catch the 'RAISE EXCEPTION' from your trigger function
+                return {"error": str(e)}, 400

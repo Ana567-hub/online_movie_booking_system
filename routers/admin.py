@@ -72,7 +72,7 @@ def add_show(request: ShowRequest, admin: Annotated[dict, Depends(get_current_ad
             # 🔒 Screen time conflict validation
             cur.execute("""
                 SELECT 1
-                FROM booking.shows
+                FROM booking.show
                 WHERE screen_id = %s
                   AND is_active = TRUE
                   AND start_time < %s
@@ -93,7 +93,7 @@ def add_show(request: ShowRequest, admin: Annotated[dict, Depends(get_current_ad
 
             # ✅ Insert show
             cur.execute("""
-                INSERT INTO booking.shows
+                INSERT INTO booking.show
                 (movie_id, screen_id, start_time, end_time, is_active)
                 VALUES (%s, %s, %s, %s, TRUE)
                 RETURNING show_id
