@@ -34,7 +34,7 @@ def get_movies(
             
             base_query += """
                      GROUP BY m.movie_id
-                        ORDER BY m.movie_id
+                     ORDER BY m.movie_id
                         """
 
             params = []

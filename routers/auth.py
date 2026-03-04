@@ -105,8 +105,9 @@ async def get_current_admin(token: Annotated[str, Depends(oauth2_bearer)]):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         role: str = payload.get("role")
+        print(role)
         if role != "Admin":
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
-        return payload
+        return role
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")

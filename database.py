@@ -10,8 +10,6 @@ DB_PASSWORD=os.getenv("DB_PASSWORD")
 DB_HOST=os.getenv("DB_HOST")
 DB_PORT=os.getenv("DB_PORT") 
 
-print(DB_PORT)
-
 def get_connection():
     return psycopg.connect(
         dbname="recovery",

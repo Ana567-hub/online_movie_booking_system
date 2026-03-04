@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from database import get_connection
 from pydantic import BaseModel
 from datetime import datetime
@@ -6,16 +6,12 @@ from typing import Optional, Annotated
 from routers import auth
 from .auth import get_current_admin
 
-router = APIRouter(prefix="/admin", tags=["Admin"])
+router = APIRouter(prefix = "/admin", tags = ["Admin"])
 
 @router.get("/dashboard")
 async def admin_dashboard(admin: Annotated[dict, Depends(get_current_admin)]):
-#only runs if user.role == 'Admin'
+    #only runs if user.role == 'Admin'
     return {"message": f"Welcome back, Admin {admin.get('sub')}"}
-
-# ---------------------------
-# 🎬 ADD MOVIE
-# ---------------------------
 
 class MovieRequest(BaseModel):
     title: str
@@ -27,7 +23,7 @@ class MovieRequest(BaseModel):
 
 
 @router.post("/movie")
-def add_movie(request: MovieRequest):
+def add_movie(request: MovieRequest, admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -65,7 +61,7 @@ class ShowRequest(BaseModel):
 
 
 @router.post("/show")
-def add_show(request: ShowRequest):
+def add_show(request: ShowRequest, admin: Annotated[dict, Depends(get_current_admin)]):
 
     if request.start_time >= request.end_time:
         raise HTTPException(status_code=400, detail="Invalid show time range")
@@ -125,7 +121,7 @@ class SeatPricingRequest(BaseModel):
 
 
 @router.post("/show-pricing")
-def set_seat_pricing(request: SeatPricingRequest):
+def set_seat_pricing(request: SeatPricingRequest, admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -157,7 +153,7 @@ def set_seat_pricing(request: SeatPricingRequest):
 # ---------------------------
 
 @router.post("/cleanup-expired-bookings")
-def cleanup_expired_bookings():
+def cleanup_expired_bookings(admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -190,7 +186,7 @@ class TheatreRequest(BaseModel):
 
 
 @router.post("/theatre")
-def add_theatre(request: TheatreRequest):
+def add_theatre(request: TheatreRequest, admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -223,7 +219,7 @@ class ScreenRequest(BaseModel):
 
 
 @router.post("/screen")
-def add_screen(request: ScreenRequest):
+def add_screen(request: ScreenRequest, admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -245,7 +241,7 @@ def add_screen(request: ScreenRequest):
     return {"screen_id": screen_id}
 
 @router.put("/movie/{movie_id}/deactivate")
-def deactivate_movie(movie_id: int):
+def deactivate_movie(movie_id: int, admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -268,7 +264,7 @@ def deactivate_movie(movie_id: int):
         "status": "DEACTIVATED"
     }
 @router.put("/show/{show_id}/deactivate")
-def deactivate_show(show_id: int):
+def deactivate_show(show_id: int, admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -291,7 +287,7 @@ def deactivate_show(show_id: int):
         "status": "DEACTIVATED"
     }
 @router.put("/theatre/{theatre_id}/deactivate")
-def deactivate_theatre(theatre_id: int):
+def deactivate_theatre(theatre_id: int,admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -314,7 +310,7 @@ def deactivate_theatre(theatre_id: int):
         "status": "DEACTIVATED"
     }
 @router.put("/screen/{screen_id}/deactivate")
-def deactivate_screen(screen_id: int):
+def deactivate_screen(screen_id: int,admin: Annotated[dict, Depends(get_current_admin)]):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
