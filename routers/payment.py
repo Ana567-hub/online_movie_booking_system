@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from database import get_connection
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Annotated
+from .auth import get_current_user
 
 router = APIRouter()
 
@@ -12,7 +14,7 @@ class PaymentRequest(BaseModel):
 
 
 @router.post("/payment")
-def make_payment(request: PaymentRequest):
+def make_payment(request: PaymentRequest, user: Annotated[dict, Depends(get_current_user)]):
 
     booking_id = request.booking_id
     payment_method_id = request.payment_method_id
