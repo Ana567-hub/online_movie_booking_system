@@ -40,7 +40,7 @@ def revenue_per_movie():
                 SELECT m.title, SUM(p.amount) AS total_revenue
                 FROM booking.payment p
                 JOIN booking.booking b ON p.booking_id = b.booking_id
-                JOIN booking.shows s ON b.show_id = s.show_id
+                JOIN booking.show s ON b.show_id = s.show_id
                 JOIN booking.movie m ON s.movie_id = m.movie_id
                 WHERE p.status = 'SUCCESS'
                 GROUP BY m.title
@@ -64,7 +64,7 @@ def bookings_per_show():
 
             cur.execute("""
                 SELECT s.show_id, m.title, COUNT(b.booking_id)
-                FROM booking.shows s
+                FROM booking.show s
                 JOIN booking.booking b ON s.show_id = b.show_id
                 JOIN booking.movie m ON s.movie_id = m.movie_id
                 GROUP BY s.show_id, m.title

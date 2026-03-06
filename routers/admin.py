@@ -11,7 +11,7 @@ router = APIRouter(prefix = "/admin", tags = ["Admin"])
 @router.get("/dashboard")
 async def admin_dashboard(admin: Annotated[dict, Depends(get_current_admin)]):
     #only runs if user.role == 'Admin'
-    return {"message": f"Welcome back, Admin {admin.get('sub')}"}
+    return {"message": f"Welcome back, Admin {admin.get('sub')} :))"}
 
 class MovieRequest(BaseModel):
     title: str

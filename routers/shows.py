@@ -22,7 +22,7 @@ def get_shows(
                          t.name AS theatre_name,
                          sc.screen_id,
                          sc.name AS screen_name
-            FROM booking.shows s
+            FROM booking.show s
             JOIN booking.screen sc ON s.screen_id = sc.screen_id
             JOIN booking.theatre t ON sc.theatre_id = t.theatre_id
             WHERE s.movie_id = %s

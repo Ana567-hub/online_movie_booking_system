@@ -156,7 +156,7 @@ def cancel_booking(booking_id: int, user: Annotated[dict, Depends(get_current_us
                 # 2️⃣ Check show start time
                 cur.execute("""
                     SELECT start_time
-                    FROM booking.shows
+                    FROM booking.show
                     WHERE show_id = %s
                 """, (show_id,))
 

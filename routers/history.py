@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_connection
 from .auth import get_current_user
 from typing import Annotated
@@ -8,6 +8,9 @@ router = APIRouter()
 @router.get("/history/{user_id}")
 def get_booking_history(user: Annotated[dict, Depends(get_current_user)]):
     user_id = user.get('id')
+    role = user.get('role')
+    if role != "Customer":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin can't view history from User endpoint")
     with get_connection() as conn:
         try:
             with conn.cursor() as cur:
